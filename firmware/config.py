@@ -1,3 +1,9 @@
+# === WIFI CREDENTIALS ===
+WIFI_SSID = "UTOPIA"
+WIFI_PASSWORD = "Mateoooo11.."
+HOSTNAME = "pico2w-mate"
+COUNTRY = "DE" 
+
 # === COLORS ===
 COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
