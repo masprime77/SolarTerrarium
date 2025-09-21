@@ -2,6 +2,8 @@ import time
 import network
 import rp2
 
+from drivers.led_builtin import LedBuiltin
+
 class WiFiService:
     def __init__(self, ssid: str, password: str, country: str, host_name: str, power_save: bool, led=None):
         self.ssid = ssid
@@ -9,7 +11,7 @@ class WiFiService:
         self.country = country
         self.host_name = host_name
         self.power_save = power_save
-        self.led = led
+        self.led = LedBuiltin() if led is None else led
 
         try:
             rp2.country(country)

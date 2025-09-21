@@ -1,6 +1,6 @@
 import config
 
-from tests.test_all_hardware import main as test_all_hardware
+from tests.test_all_hardware import test_all_hardware
 
 def main():
     test_all_hardware()

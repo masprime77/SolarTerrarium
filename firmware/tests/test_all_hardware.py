@@ -5,7 +5,7 @@ from drivers.led_neopixel import LedNeopixel
 from drivers.led_bar10 import LedBar10
 from drivers.dht22_sensor import DHT22Sensor
 
-def main():
+def test_all_hardware():
     led_builtin = LedBuiltin()
     led_ring = LedNeopixel(config.PIN_LED_RING, config.PIXEL_COUNT_RING, config.BRIGHTNESS_LED_RING, auto_show=True)
     led_overhead = LedNeopixel(config.PIN_OVERHEAD_LED, config.PIXEL_COUNT_OVERHEAD, config.BRIGHTNESS_OVERHEAD_LED, auto_show=True)
@@ -61,4 +61,4 @@ def main():
             led_bar.set_led(i, "off")
 
 if __name__ == "__main__":
-    main()
+    test_all_hardware()
