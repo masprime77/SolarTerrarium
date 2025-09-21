@@ -1,5 +1,7 @@
 import config
 import time
+import api_openweather
+import utime
 from services.http import http_get_json
 from drivers.dht22_sensor import DHT22Sensor
 
@@ -24,28 +26,53 @@ class WeatherService:
         
     def _build_url(self):
         return (
-            "https://api.open-meteo.com/v1/forecast?"
+            "http://api.open-meteo.com/v1/forecast?"
             "latitude={lat}&longitude={lon}"
-            "&current=weather_code,"
+            "&current=weather_code"
             "&daily=sunrise,sunset"
             "&forecast_days=1"
             "&timezone=auto"
         ).format(lat=self.lat, lon=self.lon)
+    
+    def _build_url_moon(self):
+        return (
+            "https://api.openweathermap.org/data/3.0/onecall?"
+            "lat={lat}&lon={lon}&appid={api_key}"
+        ).format(lat=self.lat, lon=self.lon, api_key=api_openweather.KEY)
 
     def _no_format_weather(self, raw):
         cur = raw.get("current", {})
         daily = raw.get("daily", {})
         code = cur.get("weather_code")
+        time = cur.get("time")
+        sunrise = daily.get("sunrise", [None])[0]
+        sunset = daily.get("sunset", [None])[0]
 
         return {
             "ok": code is not None,
             "wmo": code,
-            "sunrise": daily.get("sunrise", [None])[0],
-            "sunset": daily.get("sunset", [None])[0],
-            "time": cur.get("time"),
+            "time": time,
+            "sunrise": sunrise,
+            "sunset": sunset,
+            "is_day": sunrise is not None and sunset is not None and time is not None and sunrise <= time <= sunset,
             "temp_inside_C": self._th_sensor.temperature(),
             "age_s":0,
         }
+    
+    def _no_format_moon(self, raw):
+        today = raw["daily"][0]  # first day is "today"
+
+        return {
+            "moonrise": today.get("moonrise"),
+            "moonset": today.get("moonset"),
+            "moon_phase": today.get("moon_phase")
+        }
+
+    def ts_to_iso(unix_ts, offset=0):
+        if unix_ts is None:
+            return None
+        tm = utime.localtime(unix_ts + offset)
+        return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}".format(tm[0], tm[1], tm[2], tm[3], tm[4])
     
     def get_now(self, cache_max_age_s=0, timeout=10):
         now = self._now_s()
@@ -56,8 +83,21 @@ class WeatherService:
             return res
         
         try:
-            raw = self._http(self._build_url(), timeout=timeout)
-            result = self._no_format_weather(raw)
+            weather_data_raw = self._http(self._build_url(), timeout=timeout)
+            result = self._no_format_weather(weather_data_raw)
+
+            try:
+                moon_data_raw = self._http(self._build_url_moon(), timeout=timeout)
+            except Exception as e:
+                print(f"Warning: cannot get moon data: {e}")
+                moon_data_raw = None
+
+            print("moon_data_raw:", moon_data_raw)
+
+            if moon_data_raw is not None:
+                moon_data = self._no_format_moon(moon_data_raw)
+                result.update(moon_data)            
+            
             self._last = result
             self._last_ts = now
             return result
@@ -73,6 +113,7 @@ class WeatherService:
                 "wmo": None,
                 "sunrise": None,
                 "sunset": None,
+                "is_day": None,
                 "time": None,
                 "temp_inside_C": None,
                 "age_s": 0
