@@ -63,13 +63,13 @@ class LedNeopixel(Blink):
         if show_it:
             self.show()
 
-    def breathe(self, times, colors, step=20, step_delay_ms=30, end_on=False):
+    def breathe(self, times, colors, step=24, breathe_duration_ms=500, end_on=False):
         for _ in range(times):
             for color in colors:
                 for i in range(2, step + 2):
                     c = scale_rgb(color, i * (1.0 / step))
                     self.set_all(c, show=True)
-                    time.sleep_ms(step_delay_ms)
+                    time.sleep_ms(breathe_duration_ms // step)
                 
                 if color == colors[len(colors) - 1] and end_on:
                     break
@@ -77,7 +77,24 @@ class LedNeopixel(Blink):
                 for i in range(step + 1, 1, -1):
                     c = scale_rgb(color, i * (1.0 / step))
                     self.set_all(c, show=True)
-                    time.sleep_ms(step_delay_ms)
+                    time.sleep_ms(breathe_duration_ms // step)
+        self.off()
+
+    def breathe_pixel(self, pixel, times, colors, step=24, breathe_duration_ms=500, end_on=False):
+        for _ in range(times):
+            for color in colors:
+                for i in range(2, step + 2):
+                    c = scale_rgb(color, i * (1.0 / step))
+                    self.set_pixel(pixel, c, show=True)
+                    time.sleep_ms(breathe_duration_ms // step)
+                
+                if color == colors[len(colors) - 1] and end_on:
+                    break
+
+                for i in range(step + 1, 1, -1):
+                    c = scale_rgb(color, i * (1.0 / step))
+                    self.set_pixel(pixel, c, show=True)
+                    time.sleep_ms(breathe_duration_ms // step)
         self.off()
 
 

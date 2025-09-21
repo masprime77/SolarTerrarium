@@ -26,21 +26,24 @@ class WeatherService:
         return (
             "https://api.open-meteo.com/v1/forecast?"
             "latitude={lat}&longitude={lon}"
-            "&current=temperature_2m,weather_code"
+            "&current=weather_code,"
+            "&daily=sunrise,sunset"
+            "&forecast_days=1"
             "&timezone=auto"
         ).format(lat=self.lat, lon=self.lon)
 
     def _no_format_weather(self, raw):
         cur = raw.get("current", {})
+        daily = raw.get("daily", {})
         code = cur.get("weather_code")
-        indoor = self._th_sensor.temperature()
 
         return {
             "ok": code is not None,
             "wmo": code,
+            "sunrise": daily.get("sunrise", [None])[0],
+            "sunset": daily.get("sunset", [None])[0],
             "time": cur.get("time"),
-            "temp_outside_C": cur.get("temperature_2m"),
-            "temp_inside_C": indoor,
+            "temp_inside_C": self._th_sensor.temperature(),
             "age_s":0,
         }
     
@@ -68,8 +71,9 @@ class WeatherService:
             return {
                 "ok": False,
                 "wmo": None,
+                "sunrise": None,
+                "sunset": None,
                 "time": None,
-                "temp_outside_C": None,
                 "temp_inside_C": None,
                 "age_s": 0
             }
