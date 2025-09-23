@@ -62,7 +62,7 @@ class AmbientController:
         
         self._led.off()
 
-    def _pat_cloudy_day(self, visibility=0.5, cloud_size=5, cloud_speed_ms=500):
+    def _pat_cloudy_day(self, visibility=0.5, cloud_size=11, cloud_speed_ms=1500):
         cloudy  = scale_rgb(config.COLOR_CLOUDY_DAY, visibility)
         now = time.ticks_ms()
 
