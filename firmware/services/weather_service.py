@@ -39,6 +39,22 @@ class WeatherService:
             "https://api.openweathermap.org/data/3.0/onecall?"
             "lat={lat}&lon={lon}&appid={api_key}"
         ).format(lat=self.lat, lon=self.lon, api_key=api_openweather.KEY)
+    
+    def get_offset(self, lat, lon):
+        url = (
+            f"http://api.open-meteo.com/v1/forecast?"
+            f"latitude={lat}&longitude={lon}&current=temperature_2m&timezone=auto"
+        )
+
+        data = http_get_json(url)
+
+        return data.get("utc_offset_seconds", 0)
+    
+    def ts_to_iso(self, unix_ts, offset=0):
+        if unix_ts is None:
+            return None
+        tm = utime.localtime(unix_ts + offset)
+        return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}".format(tm[0], tm[1], tm[2], tm[3], tm[4])
 
     def _no_format_weather(self, raw):
         cur = raw.get("current", {})
@@ -60,19 +76,13 @@ class WeatherService:
         }
     
     def _no_format_moon(self, raw):
-        today = raw["daily"][0]  # first day is "today"
+        today = raw["daily"][0]
 
         return {
-            "moonrise": today.get("moonrise"),
-            "moonset": today.get("moonset"),
+            "moonrise": self.ts_to_iso(today.get("moonrise"), self.get_offset(self.lat, self.lon)),
+            "moonset": self.ts_to_iso(today.get("moonset"), self.get_offset(self.lat, self.lon)),
             "moon_phase": today.get("moon_phase")
         }
-
-    def ts_to_iso(unix_ts, offset=0):
-        if unix_ts is None:
-            return None
-        tm = utime.localtime(unix_ts + offset)
-        return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}".format(tm[0], tm[1], tm[2], tm[3], tm[4])
     
     def get_now(self, cache_max_age_s=0, timeout=10):
         now = self._now_s()
@@ -92,7 +102,7 @@ class WeatherService:
                 print(f"Warning: cannot get moon data: {e}")
                 moon_data_raw = None
 
-            print("moon_data_raw:", moon_data_raw)
+            # print("moon_data_raw:", moon_data_raw)
 
             if moon_data_raw is not None:
                 moon_data = self._no_format_moon(moon_data_raw)
