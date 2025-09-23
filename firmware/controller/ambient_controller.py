@@ -13,22 +13,38 @@ class AmbientController:
 
         now = time.ticks_ms()
         self._last_frame_ms = now
+        self._t_cloud_step = now
+
+        self._cloud_pos = 0
 
     def _pat_clear_day(self):
         self._led.set_all(config.COLOR_CLEAR_DAY, show=True)
 
-    def _pat_clear_night(self, step=48, breathe_duration_ms=2000, breathe_pause_ms=2500, stars_prob=3):
+    def _pat_clear_night(self, step=48, breathe_duration_ms=2000, breathe_pause_ms=2500, stars=1):
         stars_map = []
-        for _ in range(self._led._pixel_count):
-            stars_map.append(True if random.random() < (stars_prob / config.PIXEL_COUNT_OVERHEAD) else False)
+        random_stars = []
+        for _ in range(stars):
+            random_star = random.randint(0, self._led._pixel_count - 1)
+            while random_star in random_stars:
+                random_star = random.randint(0, self._led._pixel_count - 1)
+            random_stars.append(random_star)
+
+        for led in range(self._led._pixel_count):
+            is_star = False
+            for star in random_stars:
+                if led == star:
+                    is_star = True
+                    break
+            stars_map.append(is_star)
+
 
         for i in range(2, step + 2):
-            c = scale_rgb(config.COLOR_ON, i * (1.0 / step))
+            c = scale_rgb(config.COLOR_WHITE, i * (1.0 / step))
             for j in range(self._led._pixel_count):
                 if stars_map[j]:
                     self._led.set_pixel(pixel=j, color=c, show=False)
                 else:
-                    self._led.set_pixel(pixel=j, color=config.COLOR_OFF, show=False)
+                    self._led.set_pixel(pixel=j, color=config.COLOR_BLACK, show=False)
             self._led.show()
             time.sleep_ms(breathe_duration_ms // step)
 
@@ -46,8 +62,30 @@ class AmbientController:
         
         self._led.off()
 
-    def _pat_cloudy_day():
-        pass
+    def _pat_cloudy_day(self, visibility=0.5, cloud_size=5, cloud_speed_ms=500):
+        cloudy  = scale_rgb(config.COLOR_CLOUDY_DAY, visibility)
+        now = time.ticks_ms()
+
+        if time.ticks_diff(now, self._t_cloud_step) >= cloud_speed_ms:
+            self._cloud_pos = (self._cloud_pos + 1) % (self._led._pixel_count / 2)
+            self._t_cloud_step = now
+
+        self._led.set_all(cloudy, show=False)
+
+        pixels = list(range(self._led._pixel_count))
+        sky1 = pixels[0:(self._led._pixel_count // 2)]
+        sky2 = pixels[(self._led._pixel_count // 2):self._led._pixel_count]
+        sky2.reverse()
+
+        for i in range(0, (self._led._pixel_count // 2)):
+            px_distance_to_cloud_px = (i - self._cloud_pos) % (self._led._pixel_count // 2)
+            if px_distance_to_cloud_px < cloud_size:
+                self._led.set_pixel(sky1[i], config.COLOR_BLACK, show=False)
+                self._led.set_pixel(sky2[i], config.COLOR_BLACK, show=False)
+
+        self._led.show()
+
+
 
     def _pat_cloudy_night():
         pass

@@ -1,8 +1,26 @@
 def scale_rgb(color, scale):
     cr = int(color[0] * scale)
-    r = cr if cr <= 255 and cr >= 0 else 255
+    if cr > 255:
+        r = 255
+    elif cr < 0:
+        r = 0
+    else:
+        r = cr
+
     cg = int(color[1] * scale)
-    g = cg if cg <= 255 and cg >= 0 else 255
+    if cg > 255:
+        g = 255
+    elif cg < 0:
+        g = 0
+    else:
+        g = cg
+
     cb = int(color[2] * scale)
-    b = cb if cb <= 255 and cb >= 0 else 255
+    if cb > 255:
+        b = 255
+    elif cb < 0:
+        b = 0
+    else:
+        b = cb
+
     return (r, g, b)
