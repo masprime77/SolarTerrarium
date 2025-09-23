@@ -62,7 +62,7 @@ class AmbientController:
         
         self._led.off()
 
-    def _pat_cloudy_day(self, visibility=0.5, cloud_size=11, cloud_speed_ms=1500):
+    def _pat_cloudy_day(self, visibility=0.5, cloud_passthrough=0.0, cloud_size=11, cloud_speed_ms=1250):
         cloudy  = scale_rgb(config.COLOR_CLOUDY_DAY, visibility)
         now = time.ticks_ms()
 
@@ -76,16 +76,15 @@ class AmbientController:
         sky1 = pixels[0:(self._led._pixel_count // 2)]
         sky2 = pixels[(self._led._pixel_count // 2):self._led._pixel_count]
         sky2.reverse()
+        clouded = scale_rgb(config.COLOR_CLOUDY_DAY, cloud_passthrough)
 
         for i in range(0, (self._led._pixel_count // 2)):
             px_distance_to_cloud_px = (i - self._cloud_pos) % (self._led._pixel_count // 2)
             if px_distance_to_cloud_px < cloud_size:
-                self._led.set_pixel(sky1[i], config.COLOR_BLACK, show=False)
-                self._led.set_pixel(sky2[i], config.COLOR_BLACK, show=False)
+                self._led.set_pixel(sky1[i], clouded, show=False)
+                self._led.set_pixel(sky2[i], clouded, show=False)
 
         self._led.show()
-
-
 
     def _pat_cloudy_night():
         pass
