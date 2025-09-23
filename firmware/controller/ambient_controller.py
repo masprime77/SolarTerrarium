@@ -17,7 +17,7 @@ class AmbientController:
     def _pat_clear_day(self):
         self._led.set_all(config.COLOR_CLEAR_DAY, show=True)
 
-    def _pat_clear_night(self, step=48, breathe_duration_ms=2000, stars_prob=3):
+    def _pat_clear_night(self, step=48, breathe_duration_ms=2000, breathe_pause_ms=2500, stars_prob=3):
         stars_map = []
         for _ in range(self._led._pixel_count):
             stars_map.append(True if random.random() < (stars_prob / config.PIXEL_COUNT_OVERHEAD) else False)
@@ -31,6 +31,8 @@ class AmbientController:
                     self._led.set_pixel(pixel=j, color=config.COLOR_OFF, show=False)
             self._led.show()
             time.sleep_ms(breathe_duration_ms // step)
+
+        time.sleep_ms(breathe_pause_ms)
 
         for i in range(step + 1, 1, -1):
             c = scale_rgb(config.COLOR_ON, i * (1.0 / step))
