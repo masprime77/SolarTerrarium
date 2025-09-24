@@ -13,10 +13,11 @@ class AmbientController:
 
         now = time.ticks_ms()
         self._last_frame_ms = now
-        self._t_cloud_step = now
 
+        self._t_cloud_step = now
         self._cloud_pos = 0
         self._cloudy_stars_map = self._generate_objects(10)
+        self._clear_night_map = self._generate_objects(4)
 
     def _generate_objects(self, qty_objects):
         objects_idx = []
@@ -67,17 +68,19 @@ class AmbientController:
     def _pat_clear_day(self):
         self._led.set_all(config.COLOR_SKY_DAY, show=True)
 
-    def _pat_clear_night(self, step=48, breathe_duration_ms=2000,
-                         breathe_pause_ms=2500):
-        stars_map = self._generate_objects(3)
-        self._blinking_map(step=step, objects_map=stars_map,
-                           breathe_duration_ms=breathe_duration_ms,
-                           breathe_pause_ms=breathe_pause_ms,
-                           color_base=config.COLOR_SKY_NIGHT,
-                           color_object=config.COLOR_STARS)
+    def _pat_clear_night(self, stars=3):
+        for i in range(self._led.pixel_count()):
+            if self._clear_night_map[i]:
+                self._led.set_pixel(pixel=i, color=config.COLOR_STARS,
+                                    show=False)
+            else:
+                self._led.set_pixel(pixel=i, color=config.COLOR_SKY_NIGHT,
+                                    show=False)
+        
+        self._led.show()
 
-    def _pat_cloudy_day(self, visibility=0.5, cloud_passthrough=0.0,
-                        cloud_size=11, cloud_speed_ms=1250):
+    def _pat_cloudy_day(self, visibility=0.75, cloud_passthrough=0.1,
+                        cloud_size=12, cloud_speed_ms=1250):
         cloudy  = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
         now = time.ticks_ms()
 
@@ -91,7 +94,7 @@ class AmbientController:
         sky1 = pixels[0:(self._led.pixel_count() // 2)]
         sky2 = pixels[(self._led.pixel_count() // 2):self._led.pixel_count()]
         sky2.reverse()
-        clouded = scale_rgb(config.COLOR_SKY_DAY, cloud_passthrough)
+        clouded = scale_rgb(cloudy, cloud_passthrough)
 
         for i in range(0, (self._led.pixel_count() // 2)):
             px_distance_to_cloud_px = (i - self._cloud_pos) % (self._led.pixel_count() // 2)
@@ -101,8 +104,8 @@ class AmbientController:
 
         self._led.show()
 
-    def _pat_cloudy_night(self, cloud_speed_ms=1250, cloud_size=11,
-                          cloud_passthrough=0.15):
+    def _pat_cloudy_night(self, cloud_speed_ms=1250, cloud_size=12,
+                          cloud_passthrough=0.1):
         now = time.ticks_ms()
 
         if time.ticks_diff(now, self._t_cloud_step) >= cloud_speed_ms:
@@ -136,7 +139,7 @@ class AmbientController:
                 
         self._led.show()
 
-    def _pat_rain_day(self, visibility=0.1, step=5, breathe_duration_ms=15,
+    def _pat_rain_day(self, visibility=0.25, step=5, breathe_duration_ms=15,
                       breathe_pause_ms=15, pause_between_ms=0, drops=2):
         rain_map = self._generate_objects(drops)
         rainy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
@@ -159,8 +162,8 @@ class AmbientController:
                            color_base=config.COLOR_SKY_NIGHT,
                            color_object=config.COLOR_RAIN_NIGHT)
 
-    def _pat_snow_day(self, visibility=0.05, step=5, breathe_duration_ms=30,
-                      breathe_pause_ms=30, pause_between_ms=30, snowflakes=5):
+    def _pat_snow_day(self, visibility=0.2, step=24, breathe_duration_ms=600,
+                      breathe_pause_ms=250, pause_between_ms=0, snowflakes=4):
         snow_map = self._generate_objects(snowflakes)
         snowy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
         self._led.set_all(snowy, show=False)
@@ -171,8 +174,8 @@ class AmbientController:
                            color_base=snowy,
                            color_object=config.COLOR_SNOW_DAY)
 
-    def _pat_snow_night(self, step=5, breathe_duration_ms=30,
-                        breathe_pause_ms=30, pause_between_ms=30, snowflakes=5):
+    def _pat_snow_night(self, step=24, breathe_duration_ms=600,
+                        breathe_pause_ms=250, pause_between_ms=0, snowflakes=4):
         snow_map = self._generate_objects(snowflakes)
         self._led.set_all(config.COLOR_SKY_NIGHT, show=False)
         self._blinking_map(step=step, objects_map=snow_map,

@@ -18,19 +18,19 @@ def mock_weather(wmo, is_day=True, ok=True, age_s=0):
     }
 
 def demo_sequence():
-    time_s = 15
+    time_s = 10
     return [
-        ("Clear day", mock_weather(0, is_day=True), time_s),
+        # ("Clear day", mock_weather(0, is_day=True), time_s),
         ("Clear night", mock_weather(0, is_day=False), time_s),
-        ("Cloudy day", mock_weather(2, is_day=True), time_s),
-        ("Cloudy night", mock_weather(2, is_day=False), time_s),
-        ("Rainy day", mock_weather(51, is_day=True), time_s),
-        ("Rainy night", mock_weather(51, is_day=False), time_s),
-        ("Snowy day", mock_weather(71, is_day=True), time_s),
-        ("Snowy night", mock_weather(71, is_day=False), time_s),
-        ("Stormy day", mock_weather(95, is_day=True), time_s),
-        ("Stormy night", mock_weather(95, is_day=False), time_s),
-        ("Unknown", mock_weather(-1, ok=False), time_s),
+        # ("Cloudy day", mock_weather(2, is_day=True), time_s),
+        # ("Cloudy night", mock_weather(2, is_day=False), time_s),
+        # ("Rainy day", mock_weather(51, is_day=True), time_s),
+        # ("Rainy night", mock_weather(51, is_day=False), time_s),
+        # ("Snowy day", mock_weather(71, is_day=True), time_s),
+        # ("Snowy night", mock_weather(71, is_day=False), time_s),
+        # ("Stormy day", mock_weather(95, is_day=True), time_s),
+        # ("Stormy night", mock_weather(95, is_day=False), time_s),
+        # ("Unknown", mock_weather(-1, ok=False), time_s),
     ]
 
 def main():
