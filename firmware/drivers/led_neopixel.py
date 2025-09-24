@@ -84,7 +84,9 @@ class LedNeopixel(Blink):
                     c = scale_rgb(color, i * (1.0 / step))
                     self.set_all(c, show=True)
                     time.sleep_ms(breathe_duration_ms // step)
-        self.off()
+
+        if not end_on:
+            self.off()
 
     def breathe_pixel(self, pixel, times, colors, step=24, breathe_duration_ms=500, end_on=False):
         for _ in range(times):

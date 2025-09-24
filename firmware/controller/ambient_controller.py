@@ -78,7 +78,7 @@ class AmbientController:
 
     def _pat_cloudy_day(self, visibility=0.5, cloud_passthrough=0.0,
                         cloud_size=11, cloud_speed_ms=1250):
-        cloudy  = scale_rgb(config.COLOR_SKY_DAY, visibility)
+        cloudy  = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
         now = time.ticks_ms()
 
         if time.ticks_diff(now, self._t_cloud_step) >= cloud_speed_ms:
@@ -136,10 +136,10 @@ class AmbientController:
                 
         self._led.show()
 
-    def _pat_rain_day(self, visibility=0.08, step=5, breathe_duration_ms=15,
+    def _pat_rain_day(self, visibility=0.1, step=5, breathe_duration_ms=15,
                       breathe_pause_ms=15, pause_between_ms=0, drops=2):
         rain_map = self._generate_objects(drops)
-        rainy = scale_rgb(config.COLOR_SKY_DAY, visibility)
+        rainy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
         self._led.set_all(rainy, show=False)
         self._blinking_map(step=step, objects_map=rain_map,
                            breathe_duration_ms=breathe_duration_ms,
@@ -159,20 +159,66 @@ class AmbientController:
                            color_base=config.COLOR_SKY_NIGHT,
                            color_object=config.COLOR_RAIN_NIGHT)
 
-    def _pat_snow_day():
-        pass
+    def _pat_snow_day(self, visibility=0.05, step=5, breathe_duration_ms=30,
+                      breathe_pause_ms=30, pause_between_ms=30, snowflakes=5):
+        snow_map = self._generate_objects(snowflakes)
+        snowy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
+        self._led.set_all(snowy, show=False)
+        self._blinking_map(step=step, objects_map=snow_map,
+                           breathe_duration_ms=breathe_duration_ms,
+                           breathe_pause_ms=breathe_pause_ms,
+                           pause_between_ms=pause_between_ms,
+                           color_base=snowy,
+                           color_object=config.COLOR_SNOW_DAY)
 
-    def _pat_snow_night():
-        pass
+    def _pat_snow_night(self, step=5, breathe_duration_ms=30,
+                        breathe_pause_ms=30, pause_between_ms=30, snowflakes=5):
+        snow_map = self._generate_objects(snowflakes)
+        self._led.set_all(config.COLOR_SKY_NIGHT, show=False)
+        self._blinking_map(step=step, objects_map=snow_map,
+                            breathe_duration_ms=breathe_duration_ms,
+                            breathe_pause_ms=breathe_pause_ms,
+                            pause_between_ms=pause_between_ms,
+                            color_base=config.COLOR_SKY_NIGHT,
+                            color_object=config.COLOR_SNOW_NIGHT)
 
-    def _pat_storm_day():
-        pass
+    def _pat_storm_day(self, visibility=0.1, step=5, breathe_duration_ms=15,
+                      breathe_pause_ms=15, pause_between_ms=0, drops=2,
+                      lightning_chance=0.1):
+        self._pat_rain_day(visibility=visibility, step=step,
+                          breathe_duration_ms=breathe_duration_ms,
+                          breathe_pause_ms=breathe_pause_ms,
+                          pause_between_ms=pause_between_ms, drops=drops)
+        
+        rainy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
+        if random.random() < lightning_chance:
+            self._led.set_all(config.COLOR_LIGHTNING, show=True)
+            time.sleep_ms(100)
+            self._led.set_all(rainy, show=True)
+            time.sleep_ms(200)
+            self._led.set_all(config.COLOR_LIGHTNING, show=True)
+            time.sleep_ms(50)
+            self._led.set_all(rainy, show=True)
 
-    def _pat_storm_night():
-        pass
+    def _pat_storm_night(self, step=5, breathe_duration_ms=15,
+                        breathe_pause_ms=15, pause_between_ms=0, drops=2,
+                        lightning_chance=0.1):
+        self._pat_rain_night(step=step, breathe_duration_ms=breathe_duration_ms,
+                             breathe_pause_ms=breathe_pause_ms,
+                             pause_between_ms=pause_between_ms, drops=drops)
+        
+        if random.random() < lightning_chance:
+            self._led.set_all(config.COLOR_LIGHTNING, show=True)
+            time.sleep_ms(100)
+            self._led.set_all(config.COLOR_SKY_NIGHT, show=True)
+            time.sleep_ms(200)
+            self._led.set_all(config.COLOR_LIGHTNING, show=True)
+            time.sleep_ms(50)
+            self._led.set_all(config.COLOR_SKY_NIGHT, show=True)
 
-    def _pat_unwnown():
-        pass
+    def _pat_unwnown(self):
+        self._led.breathe(times=10, colors=[config.COLOR_RED], step=48,
+                          breathe_duration_ms=1000, end_on=False)
 
     def render(self, weather):
         now = time.ticks_ms()
