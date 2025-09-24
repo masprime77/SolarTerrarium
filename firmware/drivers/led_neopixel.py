@@ -17,6 +17,12 @@ class LedNeopixel(Blink):
     def pixel_count(self):
         return self._pixel_count
     
+    def frame(self):
+        return self._frame
+    
+    def getitem(self, index):
+        return self._led[index]
+    
     @property
     def brightness(self):
         return self._brightness

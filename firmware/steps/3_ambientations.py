@@ -18,11 +18,14 @@ def mock_weather(wmo, is_day=True, ok=True, age_s=0):
     }
 
 def demo_sequence():
-    time_s = 7
+    time_s = 15
     return [
         # ("Clear day", mock_weather(0, is_day=True), time_s),
         # ("Clear night", mock_weather(0, is_day=False), time_s),
-        ("Cloudy day", mock_weather(2, is_day=True), time_s),
+        # ("Cloudy day", mock_weather(2, is_day=True), time_s),
+        # ("Cloudy night", mock_weather(2, is_day=False), time_s),
+        ("Rainy day", mock_weather(51, is_day=True), time_s),
+        ("Rainy night", mock_weather(51, is_day=False), time_s),
     ]
 
 def main():
