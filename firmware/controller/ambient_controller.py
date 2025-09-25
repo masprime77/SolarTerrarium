@@ -139,7 +139,7 @@ class AmbientController:
                 
         self._led.show()
 
-    def _pat_rain_day(self, visibility=0.25, step=5, breathe_duration_ms=15,
+    def _pat_rain_day(self, visibility=0.3, step=5, breathe_duration_ms=15,
                       breathe_pause_ms=15, pause_between_ms=0, drops=2):
         rain_map = self._generate_objects(drops)
         rainy = scale_rgb(config.COLOR_SKY_DAY_CLOUDY, visibility)
@@ -187,7 +187,7 @@ class AmbientController:
 
     def _pat_storm_day(self, visibility=0.1, step=5, breathe_duration_ms=15,
                       breathe_pause_ms=15, pause_between_ms=0, drops=2,
-                      lightning_chance=0.1):
+                      lightning_chance=0.075):
         self._pat_rain_day(visibility=visibility, step=step,
                           breathe_duration_ms=breathe_duration_ms,
                           breathe_pause_ms=breathe_pause_ms,
@@ -205,7 +205,7 @@ class AmbientController:
 
     def _pat_storm_night(self, step=5, breathe_duration_ms=15,
                         breathe_pause_ms=15, pause_between_ms=0, drops=2,
-                        lightning_chance=0.1):
+                        lightning_chance=0.075):
         self._pat_rain_night(step=step, breathe_duration_ms=breathe_duration_ms,
                              breathe_pause_ms=breathe_pause_ms,
                              pause_between_ms=pause_between_ms, drops=drops)
@@ -220,7 +220,7 @@ class AmbientController:
             self._led.set_all(config.COLOR_SKY_NIGHT, show=True)
 
     def _pat_unwnown(self):
-        self._led.breathe(times=10, colors=[config.COLOR_RED], step=48,
+        self._led.breathe(times=1, colors=[config.COLOR_RED], step=30,
                           breathe_duration_ms=1000, end_on=False)
 
     def render(self, weather):
@@ -240,25 +240,32 @@ class AmbientController:
             if wmo in (0, 1):
                 self._pat_clear_day()
             elif wmo in (2, 3):
-                self._pat_cloudy_day()
+                self._pat_cloudy_day(visibility=0.75, cloud_passthrough=0.2,
+                                     cloud_size=12, cloud_speed_ms=1250)
             elif wmo in (45, 48):
-                self._pat_cloudy_day()
-            elif wmo in (51, 53, 55, 56, 57):
-                self._pat_rain_day()
-            elif wmo in (61, 63, 66):
-                self._pat_rain_day()
-            elif wmo in (65, 67):
-                self._pat_rain_day()
+                self._pat_cloudy_day(visibility=0.4, cloud_passthrough=0.1,
+                                     cloud_size=13,cloud_speed_ms=1500)
+            elif wmo in (51, 53, 55, 56, 57, 80, 81):
+                self._pat_rain_day(visibility=0.25, step=10,
+                                   breathe_duration_ms=30, breathe_pause_ms=30,
+                                   pause_between_ms=10, drops=1)
+            elif wmo in (61, 63, 65, 66, 67, 82, 85, 86):
+                self._pat_rain_day(visibility=0.2, step=10,
+                                   breathe_duration_ms=15, breathe_pause_ms=15,
+                                   pause_between_ms=0, drops=2)
             elif wmo in (71, 73):
-                self._pat_snow_day()
+                self._pat_snow_day(visibility=0.175, step=24,breathe_duration_ms=600,
+                                   breathe_pause_ms=250, pause_between_ms=20,
+                                   snowflakes=4)
             elif wmo in (75, 77):
-                self._pat_snow_day()
-            elif wmo in (80, 81):
-                self._pat_rain_day()
-            elif wmo in (82, 85, 86):
-                self._pat_rain_day()
+                self._pat_snow_day(visibility=0.12, step=24,breathe_duration_ms=400,
+                                   breathe_pause_ms=150, pause_between_ms=0,
+                                   snowflakes=4)
             elif wmo in (95, 96, 99):
-                self._pat_storm_day()
+                self._pat_storm_day(visibility=0.1, step=5,
+                                   breathe_duration_ms=12, breathe_pause_ms=12,
+                                   pause_between_ms=0, drops=2,
+                                   lightning_chance=0.075)
             else:
                 self._pat_unknown()
         
@@ -266,25 +273,29 @@ class AmbientController:
             if wmo in (0, 1):
                 self._pat_clear_night()
             elif wmo in (2, 3):
-                self._pat_cloudy_night()
+                self._pat_cloudy_night(cloud_speed_ms=1250, cloud_size=12,
+                                      cloud_passthrough=0.2)
             elif wmo in (45, 48):
-                self._pat_cloudy_night()
-            elif wmo in (51, 53, 55, 56, 57):
-                self._pat_rain_night()
-            elif wmo in (61, 63, 66):
-                self._pat_rain_night()
-            elif wmo in (65, 67):
-                self._pat_rain_night()
+                self._pat_cloudy_night(cloud_speed_ms=1500, cloud_size=13,
+                                      cloud_passthrough=0.1)
+            elif wmo in (51, 53, 55, 56, 57, 80, 81):
+                self._pat_rain_night(step=10, breathe_duration_ms=30,
+                                    breathe_pause_ms=30, pause_between_ms=10, drops=1)
+            elif wmo in (61, 63, 65, 66, 67, 82, 85, 86):
+                self._pat_rain_night(step=10, breathe_duration_ms=15,breathe_pause_ms=15,
+                                    pause_between_ms=0, drops=2)
             elif wmo in (71, 73):
-                self._pat_snow_night()
+                self._pat_snow_night(step=24, breathe_duration_ms=600,
+                                    breathe_pause_ms=250, pause_between_ms=20,
+                                    snowflakes=4)
             elif wmo in (75, 77):
-                self._pat_snow_night()
-            elif wmo in (80, 81):
-                self._pat_rain_night()
-            elif wmo in (82, 85, 86):
-                self._pat_rain_night()
+                self._pat_snow_night(step=24, breathe_duration_ms=400,
+                                     breathe_pause_ms=150, pause_between_ms=0,
+                                     snowflakes=4)
             elif wmo in (95, 96, 99):
-                self._pat_storm_night()
+                self._pat_storm_night(step=5, breathe_duration_ms=12,
+                                     breathe_pause_ms=12, pause_between_ms=0, drops=2,
+                                     lightning_chance=0.075)
             else:
                 self._pat_unknown()
         
