@@ -105,4 +105,16 @@ class LedNeopixel(Blink):
                     time.sleep_ms(breathe_duration_ms // step)
         self.off()
 
+    def transition(self, end_color, duration_ms=2000, step=48):
+        current_color = self._frame.copy()
+        for i in range(step + 1, 1, -1):
+            c = scale_rgb(current_color, i * (1.0 / step))
+            self.set_all(color=c, show=True)
+            time.sleep_ms((duration_ms // 2) // step)
+
+        for i in range(2, step + 2):
+            c = scale_rgb(end_color, i * (1.0 / step))
+            self.set_all(color=c, show=True)
+            time.sleep_ms((duration_ms // 2) // step)
+
 

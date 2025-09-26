@@ -29,6 +29,25 @@ COLOR_SNOW_DAY = (255, 255, 255)
 COLOR_SNOW_NIGHT = (200, 200, 200)
 COLOR_LIGHTNING = (150, 150, 100)
 
+# === SUN PHASES ===
+COLOR_SUNRISE = (255, 115, 30)    # warm orange
+COLOR_DAWN    = (255, 160, 40)   # soft golden yellow
+COLOR_DAY     = (255, 140, 15)   # bright white-yellow
+COLOR_DUSK    = (255, 100, 10)    # reddish orange
+COLOR_SUNSET  = (255, 50, 5)     # deep red
+
+# === MOON PHASES ===(5, 10, 20)
+COLOR_NO_MOON        = (5, 10, 20)    # dark night sky (no moon visible)
+COLOR_NEW_MOON       = (10, 20, 40)     # almost black-blue
+COLOR_WAXING_CRESCENT= (100, 100, 130) # pale bluish white
+COLOR_FIRST_QUARTER  = (220, 220, 255) # cold white
+COLOR_WAXING_GIBBOUS = (240, 240, 255) # bright white
+COLOR_FULL_MOON      = (255, 255, 200) # bright yellow-white
+COLOR_WANING_GIBBOUS = (240, 240, 255) # bright white
+COLOR_LAST_QUARTER   = (220, 220, 255) # cold white
+COLOR_WANING_CRESCENT= (200, 200, 255) # pale bluish white
+
+
 # === HARDWARE SPECEIFICATIONS ===
 PIN_DHT22_SENSOR = 2
 PIN_LED_BAR10 = [16, 17, 18, 19, 20, 21, 22, 26, 27, 28]

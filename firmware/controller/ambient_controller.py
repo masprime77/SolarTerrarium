@@ -232,7 +232,6 @@ class AmbientController:
         ok = weather.get("ok", False)
         wmo = weather.get("wmo", None)
         is_day = weather.get("is_day", True)
-        age_s = weather.get("age_s", 0)
 
         if not ok or wmo is None:
             self._pat_unwnown()
