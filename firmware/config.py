@@ -40,12 +40,12 @@ COLOR_SUNSET  = (255, 50, 5)     # deep red
 COLOR_NO_MOON        = (5, 10, 20)    # dark night sky (no moon visible)
 COLOR_NEW_MOON       = (10, 20, 40)     # almost black-blue
 COLOR_WAXING_CRESCENT= (100, 100, 130) # pale bluish white
-COLOR_FIRST_QUARTER  = (220, 220, 255) # cold white
-COLOR_WAXING_GIBBOUS = (240, 240, 255) # bright white
-COLOR_FULL_MOON      = (255, 255, 200) # bright yellow-white
-COLOR_WANING_GIBBOUS = (240, 240, 255) # bright white
-COLOR_LAST_QUARTER   = (220, 220, 255) # cold white
-COLOR_WANING_CRESCENT= (200, 200, 255) # pale bluish white
+COLOR_FIRST_QUARTER  = (150, 150, 180) # cold white
+COLOR_WAXING_GIBBOUS = (180, 180, 200) # bright white
+COLOR_FULL_MOON      = (220, 220, 250) # bright yellow-white
+COLOR_WANING_GIBBOUS = (180, 180, 200) # bright white
+COLOR_LAST_QUARTER   = (150, 150, 180) # cold white
+COLOR_WANING_CRESCENT= (100, 100, 130) # pale bluish white
 
 
 # === HARDWARE SPECEIFICATIONS ===
