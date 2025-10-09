@@ -18,7 +18,7 @@ class LedNeopixel(Blink):
         return self._pixel_count
     
     def frame(self):
-        return self._frame
+        return self._frame.copy()
     
     def getitem(self, index):
         return self._led[index]
@@ -107,6 +107,10 @@ class LedNeopixel(Blink):
 
     def transition(self, end_color, duration_ms=2000, step=48):
         current_color = self._frame.copy()
+        if len(set(current_color)) != 1:
+            raise ValueError("All pixels must be the same color to transition")
+        current_color = current_color[0]
+
         for i in range(step + 1, 1, -1):
             c = scale_rgb(current_color, i * (1.0 / step))
             self.set_all(color=c, show=True)
@@ -116,5 +120,6 @@ class LedNeopixel(Blink):
             c = scale_rgb(end_color, i * (1.0 / step))
             self.set_all(color=c, show=True)
             time.sleep_ms((duration_ms // 2) // step)
+        self.set_all(color=end_color, show=True)
 
 

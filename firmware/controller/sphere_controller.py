@@ -27,7 +27,7 @@ class SphereController:
         hh, mm = [int(x) for x in hm.split(":")]
         return y, m, d, hh, mm
     
-    def _tuple_to_iso(tup):
+    def _tuple_to_iso(self, tup):
         y, m, d, hh, mm = tup
         return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}".format(y, m, d, hh, mm)
 
@@ -39,69 +39,29 @@ class SphereController:
         sec = utime.mktime((y, m, d, hh, mm, 0, 0, 0)) + minutes * 60
         tup = utime.localtime(sec)
         return self._tuple_to_iso(tup[:5])
+    
+    def _moon_phase_name(self, p: float | None) -> str:
+        if p is None:
+            return "unknown"
 
+        if p < 0:
+            p = 0.0
 
-    def _pat_sunrise(self):
-        """
-        Conditions:
-          - is_day == True
-          - time in [sunrise, sunrise + ~60 min]
-        Visual:
-          - Warm orange/yellow gradient “rising” from lower edge, slow brighten.
-        """
-        
+        p = p % 1.0
 
-    def _pat_dawn(self):
-        """
-        Conditions:
-          - is_day == True
-          - time in (sunrise + 60 min, sunrise + 120 min]  (optional “late sunrise” vibe)
-        Visual:
-          - Soft yellow/white; slightly less warm than sunrise; gentle pulsing.
-        """
-        pass
+        if p < 0.0625 or p >= 0.9375:  return "new"
+        if p < 0.1875:                 return "waxing_crescent"
+        if p < 0.3125:                 return "first_quarter"
+        if p < 0.4375:                 return "waxing_gibbous"
+        if p <= 0.5625:                return "full"
+        if p <= 0.6875:                return "waning_gibbous"
+        if p <= 0.8125:                return "last_quarter"
+        return "waning_crescent"
 
-    def _pat_day(self):
-        """
-        Conditions:
-          - is_day == True
-          - time well between sunrise and sunset (outside dusk/dawn windows)
-        Visual:
-          - Bright sun core (warm white) with halo; higher brightness cap.
-        """
-        pass
-
-    def _pat_dusk(self):
-        """
-        Conditions:
-          - is_day == True
-          - time in [sunset - 120 min, sunset - 60 min]
-        Visual:
-          - Cooler yellow → orange; slight dimming; horizon tint.
-        """
-        pass
-
-    def _pat_sunset(self):
-        """
-        Conditions:
-          - is_day == True
-          - time in [sunset - 60 min, sunset] (or until is_day flips to False)
-        Visual:
-          - Orange → red fade, decreasing brightness; “setting” directionality.
-        """
-        pass
-
-    def _pat_moon_new(self): pass
-    def _pat_moon_waxing_crescent(self): pass
-    def _pat_moon_first_quarter(self): pass
-    def _pat_moon_waxing_gibbous(self): pass
-    def _pat_moon_full(self): pass
-    def _pat_moon_waning_gibbous(self): pass
-    def _pat_moon_last_quarter(self): pass
-    def _pat_moon_waning_crescent(self): pass
-
-    def _transition(self, end_color, duration_ms=5000, steps=100):
-        self._led.transition(end_color, duration_ms=duration_ms, steps=steps)
+    def _transition(self, end_color, duration_ms=5000, step=100):
+        if self._led.frame()[0] == end_color:
+            return
+        self._led.transition(end_color, duration_ms=duration_ms, step=step)
 
     def _pat_unknown(self):
         self._led.breathe(times=1, colors=[config.COLOR_RED], step=30,
@@ -126,17 +86,40 @@ class SphereController:
         if not ok or wmo is None:
             self._pat_unknown()
 
-        if self._is_day:
+        elif self._is_day:
             if self._within(self._sunrise_ts, self._add_minutes(self._sunrise_ts, 60),
                             self._current_ts):
-                self._pat_sunrise(dt_ms=0)
+                self._transition(config.COLOR_SUNRISE)
             elif self._within(self._add_minutes(self._sunrise_ts, 60), self._add_minutes(self._sunrise_ts, 120), self._current_ts):
-                self._pat_dawn(dt_ms=0)
+                self._transition(config.COLOR_DAWN)
             elif self._within(self._add_minutes(self._sunrise_ts, 120), self._add_minutes(self._sunset_ts, -120), self._current_ts):
-                self._pat_day(dt_ms=0)
+                self._transition(config.COLOR_DAY)
             elif self._within(self._add_minutes(self._sunset_ts, -120), self._add_minutes(self._sunset_ts, -60), self._current_ts):
-                self._pat_dusk(dt_ms=0)
+                self._transition(config.COLOR_DUSK)
             elif self._within(self._add_minutes(self._sunset_ts, -60), self._sunset_ts, self._current_ts):
-                self._pat_sunset(dt_ms=0)
+                self._transition(config.COLOR_SUNSET)
             else:
-                self._pat_day(dt_ms=0)
+                self._transition(config.COLOR_DAY)
+        
+        elif not self._is_day:
+            if self._within(self._moonrise_ts, self._moonset_ts, self._current_ts):
+                phase_name = self._moon_phase_name(self._moon_phase)
+                if phase_name == "new":
+                    self._transition(config.COLOR_NEW_MOON)
+                elif phase_name == "waxing_crescent":
+                    self._transition(config.COLOR_WAXING_CRESCENT)
+                elif phase_name == "first_quarter":
+                    self._transition(config.COLOR_FIRST_QUARTER)
+                elif phase_name == "waxing_gibbous":
+                    self._transition(config.COLOR_WAXING_GIBBOUS)
+                elif phase_name == "full":
+                    self._transition(config.COLOR_FULL_MOON)
+                elif phase_name == "waning_gibbous":
+                    self._transition(config.COLOR_WANING_GIBBOUS)
+                elif phase_name == "last_quarter":
+                    self._transition(config.COLOR_LAST_QUARTER)
+                elif phase_name == "waning_crescent":
+                    self._transition(config.COLOR_WANING_CRESCENT)
+
+        else:
+            self._pat_unknown() 

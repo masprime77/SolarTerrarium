@@ -1,9 +1,10 @@
 import config
 
-from tests.test_all_hardware import test_all_hardware
+from drivers.led_neopixel import LedNeopixel
+from drivers.
 
 def main():
-    test_all_hardware()
+    
     
 if __name__ == "__main__":
     main()
