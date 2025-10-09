@@ -2,6 +2,8 @@ import config
 import time
 import api_openweather
 import utime
+import ntptime
+
 from services.http import http_get_json
 from drivers.dht22_sensor import DHT22Sensor
 
@@ -14,6 +16,10 @@ class WeatherService:
         self._last_ts = 0
         self.source = "open-meteo"
         self._th_sensor = DHT22Sensor(pin=config.PIN_DHT22_SENSOR)
+        self._offset = self._get_offset(self.lat, self.lon)
+
+        ntptime.host = "time.google.com"
+        ntptime.settime()
 
     def set_coordinates(self, lat, lon):
         self.lat, self.lon = float(lat), float(lon)
@@ -40,7 +46,11 @@ class WeatherService:
             "lat={lat}&lon={lon}&appid={api_key}"
         ).format(lat=self.lat, lon=self.lon, api_key=api_openweather.KEY)
     
-    def get_offset(self, lat, lon):
+    def _local_now_iso(self, offset_s=0):
+        t = utime.localtime(utime.time() + offset_s)  # add local offset
+        return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}".format(t[0], t[1], t[2], t[3], t[4])
+
+    def _get_offset(self, lat, lon):
         url = (
             f"http://api.open-meteo.com/v1/forecast?"
             f"latitude={lat}&longitude={lon}&current=temperature_2m&timezone=auto"
@@ -60,7 +70,8 @@ class WeatherService:
         cur = raw.get("current", {})
         daily = raw.get("daily", {})
         code = cur.get("weather_code")
-        time = cur.get("time")
+        time = self._local_now_iso(self._offset)
+        time_rtc = utime.localtime(utime.time() + self._offset)
         sunrise = daily.get("sunrise", [None])[0]
         sunset = daily.get("sunset", [None])[0]
 
@@ -68,6 +79,7 @@ class WeatherService:
             "ok": code is not None,
             "wmo": code,
             "time": time,
+            "time_rtc": time_rtc,
             "sunrise": sunrise,
             "sunset": sunset,
             "is_day": sunrise is not None and sunset is not None and time is not None and sunrise <= time <= sunset,
@@ -79,8 +91,8 @@ class WeatherService:
         today = raw["daily"][0]
 
         return {
-            "moonrise": self.ts_to_iso(today.get("moonrise"), self.get_offset(self.lat, self.lon)),
-            "moonset": self.ts_to_iso(today.get("moonset"), self.get_offset(self.lat, self.lon)),
+            "moonrise": self.ts_to_iso(today.get("moonrise"), self._offset),
+            "moonset": self.ts_to_iso(today.get("moonset"), self._offset),
             "moon_phase": today.get("moon_phase")
         }
     
@@ -101,8 +113,6 @@ class WeatherService:
             except Exception as e:
                 print(f"Warning: cannot get moon data: {e}")
                 moon_data_raw = None
-
-            # print("moon_data_raw:", moon_data_raw)
 
             if moon_data_raw is not None:
                 moon_data = self._no_format_moon(moon_data_raw)

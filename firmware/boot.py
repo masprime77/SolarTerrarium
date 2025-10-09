@@ -1,7 +1,9 @@
 from utils.loading_animation import loading_animation
+from utils.test_all_hardware import test_all_hardware
 
 def main():
-    # loading_animation()
+    test_all_hardware()
+    loading_animation()
     pass
     
 if __name__ == "__main__":

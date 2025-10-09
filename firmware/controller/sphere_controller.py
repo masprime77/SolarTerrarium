@@ -102,7 +102,10 @@ class SphereController:
                 self._transition(config.COLOR_DAY)
         
         elif not self._is_day:
-            if self._within(self._moonrise_ts, self._moonset_ts, self._current_ts):
+            if self._moonrise_ts < self._moonset_ts:
+                if not self._within(self._moonrise_ts, self._moonset_ts, self._current_ts):
+                    self._transition(config.COLOR_NO_MOON)
+            elif self._moonrise_ts < self._current_ts or self._current_ts < self._moonset_ts:
                 phase_name = self._moon_phase_name(self._moon_phase)
                 if phase_name == "new":
                     self._transition(config.COLOR_NEW_MOON)
