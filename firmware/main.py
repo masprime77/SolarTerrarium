@@ -12,8 +12,15 @@ from controller.bar_controller import BarController
 from utils.turn_all_off import turn_all_off
 
 def within_hours(now_tuple, start, end):
-    hour, minute = now_tuple[3], now_tuple[4]
-    return ((hour == start[0] and minute >= start[1]) or (0 < hour <= end[0] and minute <= end[1]))
+    h, m = now_tuple[3], now_tuple[4]
+    start_minutes = start[0]*60 + start[1]
+    end_minutes = end[0]*60 + end[1]
+    now_minutes = h*60 + m
+
+    if end_minutes > start_minutes:
+        return start_minutes <= now_minutes < end_minutes
+    else:
+        return now_minutes >= start_minutes or now_minutes < end_minutes
 
 def main():
     wifi = WiFiService(ssid=config.WIFI_SSID,
