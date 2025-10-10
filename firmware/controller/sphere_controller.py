@@ -123,6 +123,8 @@ class SphereController:
                     self._transition(config.COLOR_LAST_QUARTER)
                 elif phase_name == "waning_crescent":
                     self._transition(config.COLOR_WANING_CRESCENT)
+            else:
+                self._transition(config.COLOR_NO_MOON)
 
         else:
             self._pat_unknown() 

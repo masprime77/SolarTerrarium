@@ -48,8 +48,6 @@ def main():
         wifi.ensure_connected()
         weather = weather_service.get_now(cache_max_age_s=290)
         if not within_hours(weather.get("time_rtc"), config.SLEEP_START, config.SLEEP_END): # off between SLEEP_START_HOUR and SLEEP_END_HOUR
-            print("Current time:", weather.get("time_rtc"))
-            print(weather)
             t0 = time.ticks_ms()
             while time.ticks_diff(time.ticks_ms(), t0) < 60 * 5 * 1000:
                 sphere_ctl.render(weather=weather)
