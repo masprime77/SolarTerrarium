@@ -13,10 +13,19 @@ class BarController:
         if temperature_c == -100:
             self._bar.set_mask(0b1010110101)
             return
-        step = (self._max_temp_c - self._min_temp_c) / (len(self._led._pins) - 1)
-        for i in range(len(self._led._pins)):
-            threshold = self._min_temp_c + i * step
-            if temperature_c >= threshold:
-                self._led.set_led(i, "on")
+        step = (self._max_temp_c - self._min_temp_c) / ((len(self._led._pins) - 1) * 2)
+        for i in range(len(self._led._pins) - 1):
+            if temperature_c <= (self._max_temp_c / 2):
+                self._led.set_led(9, "off")
+                threshold = self._min_temp_c + i * step
+                if temperature_c >= threshold:
+                    self._led.set_led(i, "on")
+                else:
+                    self._led.set_led(i, "off")
             else:
-                self._led.set_led(i, "off")
+                self._led.set_led(9, "on")
+                threshold = self._max_temp_c + (i + 9) * step
+                if temperature_c <= threshold:
+                    self._led.set_led(i, "on")
+                else:
+                    self._led.set_led(i, "off")
