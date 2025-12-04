@@ -34,7 +34,7 @@ class WeatherService:
         return (
             "http://api.open-meteo.com/v1/forecast?"
             "latitude={lat}&longitude={lon}"
-            "&current=weather_code"
+            "&current=weather_code, temperature_2m"
             "&daily=sunrise,sunset"
             "&forecast_days=1"
             "&timezone=auto"
@@ -74,6 +74,7 @@ class WeatherService:
         time_rtc = utime.localtime(utime.time() + self._offset)
         sunrise = daily.get("sunrise", [None])[0]
         sunset = daily.get("sunset", [None])[0]
+        temp_outside = cur.get("temperature_2m")
 
         return {
             "ok": code is not None,
@@ -84,7 +85,8 @@ class WeatherService:
             "sunset": sunset,
             "is_day": sunrise is not None and sunset is not None and time is not None and sunrise <= time <= sunset,
             "temp_inside_C": self._th_sensor.temperature(),
-            "age_s":0,
+            "temp_outside_C": temp_outside,
+            "age_s":0
         }
     
     def _no_format_moon(self, raw):
