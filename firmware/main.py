@@ -44,7 +44,7 @@ def main():
     wlan = wifi.connect()
     print("WiFi connected:", wlan)
 
-    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
+    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))
 
     sphere = LedNeopixel(pin=config.PIN_LED_RING,
                          pixel_count=config.PIXEL_COUNT_RING,
@@ -85,7 +85,7 @@ def main():
             else:
                 print("WiFi reconnected.")
                 time.sleep(10)
-                weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
+                weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))
     
 if __name__ == "__main__":
     main()
