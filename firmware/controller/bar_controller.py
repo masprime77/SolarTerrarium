@@ -10,24 +10,32 @@ class BarController:
 
     def render(self, weather):
         temperature_c = weather.get("temp_inside_C", -100)
-        if temperature_c == -100:
-            self._bar.set_mask(0b1010110101)
+        if temperature_c == None:
+            self._led.set_mask(0b1010110101)
             return
-        step = (self._max_temp_c - self._min_temp_c) / ((len(self._led._pins) - 1) * 2)
+        
+        def _as_five_bits(temp):
+            try:
+                value = int(round(float(temp)))
+            except (TypeError, ValueError):
+                return None
+            value = 0 if value < 0 else 31 if value > 31 else value
+            return value
 
-        if temperature_c <= (self._max_temp_c / 2):
-            self._led.set_led(9, "off")
-            for i in range(len(self._led._pins) - 1):              
-                threshold = self._min_temp_c + i * step
-                if temperature_c >= threshold:
-                    self._led.set_led(i, "on")
-                else:
-                    self._led.set_led(i, "off")
-        else:
-            self._led.set_led(9, "on")
-            for i in range(len(self._led._pins) - 1):
-                threshold = self._min_temp_c + (i + 9) * step
-                if temperature_c >= threshold:
-                    self._led.set_led(i, "on")
-                else:
-                    self._led.set_led(i, "off")
+        outside_temp = weather.get("temp_outside_C")
+        inside_temp = weather.get("temp_inside_C")
+
+        outside_bits = _as_five_bits(outside_temp)
+        inside_bits = _as_five_bits(inside_temp)
+
+        if outside_bits is None and inside_bits is None:
+            self._led.set_mask(self._ERROR_MASK)
+            return
+
+        mask = 0b0000000000
+        if outside_bits is not None:
+            mask |= outside_bits & 0b11111  # first 5 LEDs -> outside temp
+        if inside_bits is not None:
+            mask |= ((inside_bits & 0b11111) << 5)  # last 5 LEDs -> inside temp
+
+        self._led.set_mask(mask)

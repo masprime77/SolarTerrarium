@@ -22,14 +22,29 @@ def within_hours(now_tuple, start, end):
     else:
         return now_minutes >= start_minutes or now_minutes < end_minutes
 
+def minutes_between(start, end):
+    h1, m1 = start
+    h2, m2 = end
+
+    t1 = h1 * 60 + m1
+    t2 = h2 * 60 + m2
+
+    if t2 <= t1:
+        t2 += 24 * 60
+
+    return t2 - t1
+
 def main():
     wifi = WiFiService(ssid=config.WIFI_SSID,
                        password=config.WIFI_PASSWORD,
                        country=config.COUNTRY,
                        host_name=config.HOSTNAME,
                        power_save=True)
-    wifi.connect()
-    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))
+    
+    wlan = wifi.connect()
+    print("WiFi connected:", wlan)
+
+    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
 
     sphere = LedNeopixel(pin=config.PIN_LED_RING,
                          pixel_count=config.PIXEL_COUNT_RING,
@@ -45,19 +60,32 @@ def main():
     bar_ctl = BarController(min_temp_c=0, max_temp_c=36)
 
     while True:
-        wifi.ensure_connected()
         weather = weather_service.get_now(cache_max_age_s=290)
-        if not within_hours(weather.get("time_rtc"), config.SLEEP_START, config.SLEEP_END): # off between SLEEP_START_HOUR and SLEEP_END_HOUR
-            t0 = time.ticks_ms()
-            while time.ticks_diff(time.ticks_ms(), t0) < 60 * 5 * 1000:
-                sphere_ctl.render(weather=weather)
-                ambient_ctl.render(weather=weather)
-                bar_ctl.render(weather=weather)
-                time.sleep_ms(11)
+        print("Weather data:", weather)
+        if weather.get("ok", False):
+            if not within_hours(weather.get("time_rtc"), config.SLEEP_START, config.SLEEP_END): # off between SLEEP_START_HOUR and SLEEP_END_HOUR
+                t0 = time.ticks_ms()
+                while time.ticks_diff(time.ticks_ms(), t0) < 60 * 5 * 1000:
+                    sphere_ctl.render(weather=weather)
+                    ambient_ctl.render(weather=weather)
+                    bar_ctl.render(weather=weather)
+                    time.sleep_ms(11)
 
+            else:
+                turn_all_off()
+                time.sleep(minutes_between(config.SLEEP_START, config.SLEEP_END) * 60)
+                
         else:
-            turn_all_off()
-            time.sleep(30 * 60)
+            sphere_ctl.render(weather=weather)
+            ambient_ctl.render(weather=weather)
+            bar_ctl.render(weather=weather)
+            reconnect = wifi.ensure_connected()
+            if not reconnect:
+                print("WiFi reconnect failed.")
+            else:
+                print("WiFi reconnected.")
+                time.sleep(10)
+                weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
     
 if __name__ == "__main__":
     main()
