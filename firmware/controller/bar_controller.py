@@ -11,7 +11,7 @@ class BarController:
     def render(self, weather):
         temperature_c = weather.get("temp_inside_C", -100)
         if temperature_c == None:
-            self._bar.set_mask(0b1010110101)
+            self._led.set_mask(0b1010110101)
             return
         
         def _as_five_bits(temp):
@@ -32,10 +32,10 @@ class BarController:
             self._led.set_mask(self._ERROR_MASK)
             return
 
-        mask = 0
+        mask = 0b0000000000
         if outside_bits is not None:
             mask |= outside_bits & 0b11111  # first 5 LEDs -> outside temp
         if inside_bits is not None:
-            mask |= (inside_bits & 0b11111) << 5  # last 5 LEDs -> inside temp
+            mask |= ((inside_bits & 0b11111) << 5)  # last 5 LEDs -> inside temp
 
         self._led.set_mask(mask)

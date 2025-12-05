@@ -40,8 +40,11 @@ def main():
                        country=config.COUNTRY,
                        host_name=config.HOSTNAME,
                        power_save=True)
-    wifi.connect()
-    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))
+    
+    wlan = wifi.connect()
+    print("WiFi connected:", wlan)
+
+    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
 
     sphere = LedNeopixel(pin=config.PIN_LED_RING,
                          pixel_count=config.PIXEL_COUNT_RING,
@@ -58,6 +61,7 @@ def main():
 
     while True:
         weather = weather_service.get_now(cache_max_age_s=290)
+        print("Weather data:", weather)
         if weather.get("ok", False):
             if not within_hours(weather.get("time_rtc"), config.SLEEP_START, config.SLEEP_END): # off between SLEEP_START_HOUR and SLEEP_END_HOUR
                 t0 = time.ticks_ms()
@@ -75,7 +79,13 @@ def main():
             sphere_ctl.render(weather=weather)
             ambient_ctl.render(weather=weather)
             bar_ctl.render(weather=weather)
-            wifi.ensure_connected()
+            reconnect = wifi.ensure_connected()
+            if not reconnect:
+                print("WiFi reconnect failed.")
+            else:
+                print("WiFi reconnected.")
+                time.sleep(10)
+                weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE), cache_grace_sec=100)
     
 if __name__ == "__main__":
     main()

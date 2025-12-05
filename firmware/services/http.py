@@ -11,6 +11,11 @@ def http_get_json(url, timeout=10):
             raise RuntimeError("HTTP %d" % r.status_code)
         data = r.json()
         return data
+    
+    except Exception as e:
+        print(f"HTTP GET error: {e}")
+        return None
+
     finally:
         try:
             if r:

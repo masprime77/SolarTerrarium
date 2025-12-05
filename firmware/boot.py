@@ -1,9 +1,10 @@
 from utils.loading_animation import main as loading_animation
-from tests.test_all_hardware import main as test_all_hardware
+from utils.turn_all_off import turn_all_off
 
 def main():
-    # test_all_hardware()
+    turn_all_off()
     loading_animation()
+    turn_all_off()
     
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ from services.http import http_get_json
 from drivers.dht22_sensor import DHT22Sensor
 
 class WeatherService:
-    def __init__(self, coordinates, cache_grace_sec=60*60, http=http_get_json):
+    def __init__(self, coordinates, cache_grace_sec=15*60, http=http_get_json):
         self.lat, self.lon = float(coordinates[0]), float(coordinates[1])
         self._http = http
         self._grace = int(cache_grace_sec)
@@ -18,8 +18,11 @@ class WeatherService:
         self._th_sensor = DHT22Sensor(pin=config.PIN_DHT22_SENSOR)
         self._offset = self._get_offset(self.lat, self.lon)
 
-        ntptime.host = "time.google.com"
-        ntptime.settime()
+        try:
+            ntptime.host = "time.google.com"
+            ntptime.settime()
+        except:
+            pass
 
     def set_coordinates(self, lat, lon):
         self.lat, self.lon = float(lat), float(lon)
@@ -34,7 +37,7 @@ class WeatherService:
         return (
             "http://api.open-meteo.com/v1/forecast?"
             "latitude={lat}&longitude={lon}"
-            "&current=weather_code, temperature_2m"
+            "&current=weather_code,temperature_2m"
             "&daily=sunrise,sunset"
             "&forecast_days=1"
             "&timezone=auto"
@@ -58,7 +61,13 @@ class WeatherService:
 
         data = http_get_json(url)
 
-        return data.get("utc_offset_seconds", 0)
+        try:
+            d = data.get("utc_offset_seconds", 0)
+        except Exception as e:
+            print(f"Error getting timezone offset: {e}")
+            return None
+
+        return d
     
     def ts_to_iso(self, unix_ts, offset=0):
         if unix_ts is None:
@@ -108,6 +117,7 @@ class WeatherService:
         
         try:
             weather_data_raw = self._http(self._build_url(), timeout=timeout)
+            print("Getted weather data")
             result = self._no_format_weather(weather_data_raw)
 
             try:
@@ -125,6 +135,8 @@ class WeatherService:
             return result
         except Exception as e:
             print(f"Error: {e}!")
+            print(now)
+            print(self._last_ts)
             if self._last and (now - self._last_ts) <= self._grace:
                 res = dict(self._last)
                 res["age_s"] = now - self._last_ts
