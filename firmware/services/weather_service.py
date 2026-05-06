@@ -65,9 +65,9 @@ class WeatherService:
             d = data.get("utc_offset_seconds", 0)
         except Exception as e:
             print(f"Error getting timezone offset: {e}")
-            return None
+            return 0
 
-        return d
+        return d if d is not None else 0
     
     def ts_to_iso(self, unix_ts, offset=0):
         if unix_ts is None:

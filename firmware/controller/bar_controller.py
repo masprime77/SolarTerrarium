@@ -29,7 +29,7 @@ class BarController:
         inside_bits = _as_five_bits(inside_temp)
 
         if outside_bits is None and inside_bits is None:
-            self._led.set_mask(self._ERROR_MASK)
+            self._led.set_mask(0b1010110101)
             return
 
         mask = 0b0000000000
