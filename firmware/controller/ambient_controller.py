@@ -20,6 +20,7 @@ class AmbientController:
         self._clear_night_map = self._generate_objects(4)
 
     def _generate_objects(self, qty_objects):
+        qty_objects = min(qty_objects, self._led.pixel_count())
         objects_idx = []
         objects_map = []
         for _ in range(qty_objects):
@@ -219,7 +220,7 @@ class AmbientController:
             time.sleep_ms(50)
             self._led.set_all(config.COLOR_SKY_NIGHT, show=True)
 
-    def _pat_unwnown(self):
+    def _pat_unknown(self):
         self._led.breathe(times=1, colors=[config.COLOR_RED], step=30,
                           breathe_duration_ms=1000, end_on=False)
 
@@ -234,7 +235,7 @@ class AmbientController:
         is_day = weather.get("is_day", True)
 
         if not ok or wmo is None:
-            self._pat_unwnown()
+            self._pat_unknown()
         elif is_day:
             if wmo in (0, 1):
                 self._pat_clear_day()

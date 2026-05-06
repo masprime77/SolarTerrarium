@@ -34,6 +34,14 @@ def minutes_between(start, end):
 
     return t2 - t1
 
+def minutes_until(now_tuple, target):
+    h, m = now_tuple[3], now_tuple[4]
+    now_min = h * 60 + m
+    target_min = target[0] * 60 + target[1]
+    if target_min <= now_min:
+        target_min += 24 * 60
+    return target_min - now_min
+
 def main():
     wifi = WiFiService(ssid=config.WIFI_SSID,
                        password=config.WIFI_PASSWORD,
@@ -73,8 +81,9 @@ def main():
 
             else:
                 turn_all_off()
-                time.sleep(minutes_between(config.SLEEP_START, config.SLEEP_END) * 60)
-                
+                remaining = minutes_until(weather.get("time_rtc"), config.SLEEP_END)
+                time.sleep(remaining * 60)
+
         else:
             sphere_ctl.render(weather=weather)
             ambient_ctl.render(weather=weather)
@@ -82,6 +91,7 @@ def main():
             reconnect = wifi.ensure_connected()
             if not reconnect:
                 print("WiFi reconnect failed.")
+                time.sleep(30)
             else:
                 print("WiFi reconnected.")
                 time.sleep(10)
