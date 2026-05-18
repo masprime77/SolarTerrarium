@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-syntax:
+    name: Lint & syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Syntax check
+        run: find firmware -name "*.py" | xargs python -m py_compile
+
+      - name: Lint
+        # E402: import not at top (MicroPython sometimes imports after init code)
+        # F401: imported but unused (MicroPython imports can be for side-effects)
+        # E701: multiple statements on one line (intentional style in sphere_controller phase table)
+        # E722: bare except (intentional — hardware code must not crash on unexpected errors)
+        run: ruff check firmware/ --ignore E402,F401,E701,E722
+
+      - name: Check for committed secrets
+        run: |
+          # Fail if api_openweather.py is present and contains a real-looking key.
+          # A missing file means it is gitignored (expected) — that is a pass.
+          python - <<'EOF'
+          import re, sys, os
+          path = "firmware/api_openweather.py"
+          if not os.path.exists(path):
+              print("Secrets check passed (file is gitignored).")
+              sys.exit(0)
+          with open(path) as f:
+              content = f.read()
+          match = re.search(r'KEY\s*=\s*["\']([^"\']+)["\']', content)
+          if match and re.fullmatch(r'[0-9a-f]{32}', match.group(1)):
+              print("ERROR: Real OpenWeatherMap API key found in firmware/api_openweather.py")
+              print("Replace it with an empty string or placeholder before committing.")
+              sys.exit(1)
+          print("Secrets check passed.")
+          EOF
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run unit tests
+        run: python -m pytest tests/unit/ -v

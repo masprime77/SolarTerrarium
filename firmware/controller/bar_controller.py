@@ -10,7 +10,7 @@ class BarController:
 
     def render(self, weather):
         temperature_c = weather.get("temp_inside_C", -100)
-        if temperature_c == None:
+        if temperature_c is None:
             self._led.set_mask(0b1010110101)
             return
         
