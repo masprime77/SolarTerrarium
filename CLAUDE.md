@@ -71,3 +71,42 @@ Each controller holds state across frames and is called once per frame:
 ## WMO weather codes
 
 The mapping is in `services/mapping_wmo.py`. Controllers dispatch on explicit sets of WMO integers — any code not in those sets falls through to the `_pat_unknown()` error pattern (red breathe). The full code→description table is in `WMO` dict if you need to add new codes.
+
+## CI (GitHub Actions)
+
+`.github/workflows/ci.yml` runs on every push/PR to `main` or `dev`. Two jobs:
+
+**`lint-and-syntax`**
+1. Syntax-checks all `firmware/**/*.py` with `python -m py_compile`.
+2. Lints with `ruff` (ignores: `E402`, `F401`, `E701`, `E722` — all intentional MicroPython patterns).
+3. Secrets check: fails if `firmware/api_openweather.py` contains a real-looking 32-char hex key.
+
+**`unit-tests`** — runs `pytest tests/unit/` (26 tests, ~0.02 s).
+
+### Running CI checks locally
+
+```bash
+# Syntax
+find firmware -name "*.py" | xargs python -m py_compile
+
+# Lint
+ruff check firmware/ --ignore E402,F401,E701,E722
+
+# Tests
+python -m pytest tests/unit/ -v
+```
+
+### Unit test layout
+
+```
+tests/
+└── unit/
+    ├── conftest.py          # stubs machine, network, neopixel, rp2, etc. + config mock
+    ├── test_scale_rgb.py    # 8 tests — brightness, clamping, truncation
+    ├── test_within_hours.py # 12 tests — normal ranges and midnight-crossing sleep windows
+    └── test_wmo_mapping.py  # 5 tests — known codes, coercion, unknowns, full WMO dict coverage
+```
+
+`firmware/tests/test_all_hardware.py` is a separate on-device test; run it with `mpremote run`.
+
+The `conftest.py` stubs all MicroPython-only modules into `sys.modules` before any firmware import, so pure-logic functions can be tested with standard CPython. When adding new unit tests for code that imports hardware modules, add any missing stubs to the `_MICROPYTHON_STUBS` list in `conftest.py`.
