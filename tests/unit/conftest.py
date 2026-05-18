@@ -16,6 +16,11 @@ _MICROPYTHON_STUBS = [
 for _mod in _MICROPYTHON_STUBS:
     sys.modules.setdefault(_mod, MagicMock())
 
+# api_openweather.py is gitignored; stub it so imports succeed without the file
+_api = types.ModuleType("api_openweather")
+_api.KEY = ""
+sys.modules.setdefault("api_openweather", _api)
+
 # Stub config with safe defaults so any firmware import that touches config works
 _config = types.ModuleType("config")
 _config.WIFI_SSID = "test_ssid"
