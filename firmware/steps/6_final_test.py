@@ -106,7 +106,7 @@ def main():
                        host_name=config.HOSTNAME,
                        power_save=True)
     wifi.connect()
-    weather_service = WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))
+    WeatherService(coordinates=(config.LATITUDE, config.LONGITUDE))  # runs NTP sync
 
     sphere = LedNeopixel(pin=config.PIN_LED_RING,
                          pixel_count=config.PIXEL_COUNT_RING,

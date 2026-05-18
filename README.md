@@ -44,3 +44,22 @@ Firmware for a Raspberry Pi Pico W “solar terrarium” that paints live sky co
 - Weather responses are cached briefly; the device will reuse the last good reading for a grace period if requests fail.
 - Wi‑Fi reconnects automatically; the built‑in LED indicates link status during connect.
 - Brightness limits (`BRIGHTNESS_LED_RING`, `BRIGHTNESS_OVERHEAD_LED`) are applied to every frame; lower them for USB‑powered setups.
+
+## Development
+
+CI runs automatically on every push and pull request via GitHub Actions (`.github/workflows/ci.yml`). It checks syntax, lints with `ruff`, scans for committed secrets, and runs the unit test suite.
+
+To run the same checks locally (requires Python 3.11+ and `pip install pytest ruff`):
+
+```bash
+# Syntax check
+find firmware -name "*.py" | xargs python -m py_compile
+
+# Lint
+ruff check firmware/ --ignore E402,F401,E701,E722
+
+# Unit tests (no device needed)
+python -m pytest tests/unit/ -v
+```
+
+Unit tests live in `tests/unit/` and cover pure‑logic functions (`scale_rgb`, `within_hours`, WMO mapping). They stub out all MicroPython‑only modules so they run on standard CPython. Hardware tests that require the Pico are in `firmware/tests/`.
