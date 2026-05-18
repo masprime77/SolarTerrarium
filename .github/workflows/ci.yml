@@ -32,10 +32,15 @@ jobs:
 
       - name: Check for committed secrets
         run: |
-          # Fail if api_openweather.py contains a real-looking key (non-empty, non-placeholder)
+          # Fail if api_openweather.py is present and contains a real-looking key.
+          # A missing file means it is gitignored (expected) — that is a pass.
           python - <<'EOF'
-          import re, sys
-          with open("firmware/api_openweather.py") as f:
+          import re, sys, os
+          path = "firmware/api_openweather.py"
+          if not os.path.exists(path):
+              print("Secrets check passed (file is gitignored).")
+              sys.exit(0)
+          with open(path) as f:
               content = f.read()
           match = re.search(r'KEY\s*=\s*["\']([^"\']+)["\']', content)
           if match and re.fullmatch(r'[0-9a-f]{32}', match.group(1)):
